@@ -40,11 +40,11 @@ mkdir -p $_DEPS_SRC_DIR
 #Adjust branches and installation location as necessary
 export _UCX_INSTALL_DIR=$_INSTALL_DIR/ucx
 export _UCX_REPO=https://github.com/ROCm/ucx.git
-export _UCX_COMMIT_HASH=18770fdc1c3b5de202d14a088a14b734d2c4bbf3
+export _UCX_COMMIT_HASH=1.17.x
 
 export _OMPI_INSTALL_DIR=$_INSTALL_DIR/ompi
 export _OMPI_REPO=https://github.com/ROCm/ompi.git
-export _OMPI_COMMIT_HASH=697a596dde68815fe50db3c2a75a42ddb41b5ef4
+export _OMPI_COMMIT_HASH=5.0.x
 
 # Step 1: Build UCX with ROCm support
 cd $_DEPS_SRC_DIR
@@ -59,7 +59,8 @@ git checkout $_UCX_COMMIT_HASH
                             --without-go               \
                             --without-java             \
                             --without-cuda             \
-                            --without-knem
+                            --without-knem             \
+                            --without-verbs
 make -j
 make install
 
