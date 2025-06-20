@@ -106,7 +106,8 @@ set(DEFAULT_GPUS
       gfx90a:xnack-;
       gfx90a:xnack+;
       gfx942:xnack-;
-      gfx942:xnack+)
+      gfx942:xnack+;
+      gfx950)
 
 ###############################################################################
 # PROJECT
