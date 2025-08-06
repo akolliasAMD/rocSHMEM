@@ -89,7 +89,6 @@ find_package(ROCmCMakeBuildTools PATHS /opt/rocm)
 include(ROCMCreatePackage)
 include(ROCMInstallTargets)
 include(ROCMCheckTargetIds)
-find_package(hip REQUIRED PATHS /opt/rocm)
 
 rocm_setup_version(VERSION ${VERSION_STRING})
 
@@ -146,6 +145,7 @@ if (NOT BUILD_TESTS_ONLY)
   #############################################################################
   # PACKAGE DEPENDENCIES
   #############################################################################
+  find_package(hip REQUIRED PATHS /opt/rocm)
   find_package(MPI REQUIRED)
   find_package(hsa-runtime64 REQUIRED)
 
