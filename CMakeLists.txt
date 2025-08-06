@@ -89,6 +89,7 @@ find_package(ROCmCMakeBuildTools PATHS /opt/rocm)
 include(ROCMCreatePackage)
 include(ROCMInstallTargets)
 include(ROCMCheckTargetIds)
+find_package(hip REQUIRED PATHS /opt/rocm)
 
 rocm_setup_version(VERSION ${VERSION_STRING})
 
@@ -100,10 +101,15 @@ include(cmake/rocm_local_targets.cmake)
 set(DEFAULT_GPUS
     gfx90a:xnack-;
     gfx90a:xnack+;
-    gfx942:xnack-;
-    gfx942:xnack+;
-    gfx950:xnack-;
-    gfx950:xnack+)
+    gfx942)
+if (hip_VERSION VERSION_GREATER_EQUAL 7)
+  list(APPEND DEFAULT_GPUS
+    gfx950)
+endif()
+
+if($ENV{BUILD_LOCAL_GPU_TARGET_ONLY})
+  set(BUILD_LOCAL_GPU_TARGET_ONLY ON)
+endif()
 
 if (BUILD_LOCAL_GPU_TARGET_ONLY)
   message(STATUS "Building only for local GPU target")
@@ -141,7 +147,6 @@ if (NOT BUILD_TESTS_ONLY)
   # PACKAGE DEPENDENCIES
   #############################################################################
   find_package(MPI REQUIRED)
-  find_package(hip REQUIRED PATHS /opt/rocm)
   find_package(hsa-runtime64 REQUIRED)
 
   set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
