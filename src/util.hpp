@@ -404,7 +404,7 @@ __device__ __forceinline__ void memcpy(void* dst, void* src, size_t size) {
 }
 
 __device__ __forceinline__ void memcpy_wg(void* dst, void* src, size_t size) {
-  int thread_id{get_flat_block_id()};
+int thread_id{get_flat_block_id()};
   int block_size{get_flat_block_size()};
 
   int cpy_size{};
@@ -418,27 +418,56 @@ __device__ __forceinline__ void memcpy_wg(void* dst, void* src, size_t size) {
   dst_bytes = dst_def;
   src_bytes = src_def;
 
-  for (int j{8}; j > 1; j >>= 1) {
-    cpy_size = size / j;
-    for (int i{thread_id}; i < cpy_size; i += block_size) {
-      dst_bytes = dst_def;
-      src_bytes = src_def;
+  //for (int j{8}; j > 1; j >>= 1) {
+  cpy_size = size / 8;
+  for (int i{thread_id}; i < cpy_size; i += block_size) {
+    dst_bytes = dst_def;
+    src_bytes = src_def;
 
-      src_bytes += i * j;
-      dst_bytes += i * j;
+    src_bytes += i * 8;
+    dst_bytes += i * 8;
 
-      store_asm(src_bytes, dst_bytes, j);
-    }
-    size -= cpy_size * j;
-    dst_def += cpy_size * j;
-    src_def += cpy_size * j;
+    __builtin_nontemporal_store(*(reinterpret_cast<int64_t*>(src_bytes)), (int64_t *)dst_bytes);
   }
+  size -= cpy_size * 8;
+  dst_def += cpy_size * 8;
+  src_def += cpy_size * 8;
+
+  cpy_size = size / 4;
+  for (int i{thread_id}; i < cpy_size; i += block_size) {
+    dst_bytes = dst_def;
+    src_bytes = src_def;
+
+    src_bytes += i * 4;
+    dst_bytes += i * 4;
+
+    __builtin_nontemporal_store(*(reinterpret_cast<int32_t*>(src_bytes)), (int32_t *)dst_bytes);
+  }
+  size -= cpy_size * 4;
+  dst_def += cpy_size * 4;
+  src_def += cpy_size * 4;
+
+  cpy_size = size / 2;
+  for (int i{thread_id}; i < cpy_size; i += block_size) {
+    dst_bytes = dst_def;
+    src_bytes = src_def;
+
+    src_bytes += i * 2;
+    dst_bytes += i * 2;
+
+    __builtin_nontemporal_store(*(reinterpret_cast<int16_t*>(src_bytes)), (int16_t *)dst_bytes);
+  }
+  size -= cpy_size * 2;
+  dst_def += cpy_size * 2;
+  src_def += cpy_size * 2;
+  //}
 
   if (size == 1) {
     if (is_thread_zero_in_block()) {
       *dst_bytes = *src_bytes;
     }
   }
+
 }
 
 __device__ __forceinline__ void memcpy_wave(void* dst, void* src, size_t size) {
