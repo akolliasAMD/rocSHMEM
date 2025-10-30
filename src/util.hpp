@@ -389,13 +389,25 @@ __device__ __forceinline__ void memcpy_lane(void* dst, void* src, size_t size) {
   uint8_t* dst_bytes{static_cast<uint8_t*>(dst)};
   uint8_t* src_bytes{static_cast<uint8_t*>(src)};
 
-  for (size_t i = 8; i > 1; i >>= 1) {
-    while (size >= i) {
-      store_asm(src_bytes, dst_bytes, i);
-      src_bytes += i;
-      dst_bytes += i;
-      size -= i;
-    }
+  //for (size_t i = 8; i > 1; i >>= 1) {
+  // TODO iter size/(unroll*8)
+  while (size >= 8) {
+    __builtin_nontemporal_store(*(reinterpret_cast<int64_t*>(src_bytes)), (int64_t *)dst_bytes);
+    src_bytes += 8;
+    dst_bytes += 8;
+    size -= 8;
+  }
+  while (size >= 4) {
+    __builtin_nontemporal_store(*(reinterpret_cast<int32_t*>(src_bytes)), (int32_t *)dst_bytes);
+    src_bytes += 4;
+    dst_bytes += 4;
+    size -= 4;
+   }
+  while (size >= 2) {
+    __builtin_nontemporal_store(*(reinterpret_cast<int16_t*>(src_bytes)), (int16_t *)dst_bytes);
+    src_bytes += 2;
+    dst_bytes += 2;
+    size -= 2;
   }
 
   if (size == 1) {
