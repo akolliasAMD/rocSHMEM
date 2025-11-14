@@ -68,11 +68,16 @@ __global__ void WorkGroupPrimitiveTest(int loop, int skip,
         rocshmem_ctx_putmem_wg(ctx, dest, source, size, 1);
         break;
       case WGPutNBITestType:
-        rocshmem_ctx_putmem_nbi_wg(ctx, dest, source, size, 1);
+        rocshmem_ctx_putmem_nbi_wg(ctx, dest+size*(i%10), source+size*(i%10), size, 1);
         break;
       default:
         break;
     }
+  /*if (is_thread_zero_in_block()) {
+    rocshmem_ctx_quiet(ctx);
+    end_time[wg_id] = wall_clock64();
+  }*/
+
   }
 
   if (is_thread_zero_in_block()) {
@@ -89,8 +94,8 @@ __global__ void WorkGroupPrimitiveTest(int loop, int skip,
 WorkGroupPrimitiveTester::WorkGroupPrimitiveTester(TesterArguments args)
     : Tester(args) {
   size_t buff_size = args.max_msg_size * args.num_wgs;
-  source = (char *)rocshmem_malloc(buff_size);
-  dest = (char *)rocshmem_malloc(buff_size);
+  source = (char *)rocshmem_malloc(buff_size*10);
+  dest = (char *)rocshmem_malloc(buff_size*10);
 
   if (source == nullptr || dest == nullptr) {
     std::cerr << "Error allocating memory from symmetric heap" << std::endl;
