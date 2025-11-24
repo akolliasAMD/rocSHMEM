@@ -219,9 +219,10 @@ __device__ __forceinline__ void __roc_flush() {
 
 __device__ __forceinline__ void store_asm(uint8_t* val, uint8_t* dst,
                                           int size) {
+
   switch (size) {
     case 2: {
-		    int16_t val16{__builtin_nontemporal_load((int16_t *)val)};
+      int16_t val16{*(reinterpret_cast<int16_t*>(val))};
 #if defined(__gfx906__)
 #endif
 #if defined(__gfx908__)
@@ -230,7 +231,7 @@ __device__ __forceinline__ void store_asm(uint8_t* val, uint8_t* dst,
       asm volatile("flat_store_short %0 %1 glc slc" : : "v"(dst), "v"(val16));
 #endif
 #if defined(__gfx942__) || defined(__gfx950__)
-      __builtin_nontemporal_store(val16, (int16_t *)dst);
+      asm volatile("flat_store_short %0 %1 sc0 sc1" : : "v"(dst), "v"(val16));
 #endif
 #if defined(__gfx1100__)
       int32_t val32{*(reinterpret_cast<int32_t*>(val))};
@@ -243,7 +244,7 @@ __device__ __forceinline__ void store_asm(uint8_t* val, uint8_t* dst,
       break;
     }
     case 4: {
-		    int32_t val32{__builtin_nontemporal_load((int32_t *)val)};
+      int32_t val32{*(reinterpret_cast<int32_t*>(val))};
 #if defined(__gfx906__)
 #endif
 #if defined(__gfx908__)
@@ -252,7 +253,7 @@ __device__ __forceinline__ void store_asm(uint8_t* val, uint8_t* dst,
       asm volatile("flat_store_dword %0 %1 glc slc" : : "v"(dst), "v"(val32));
 #endif
 #if defined(__gfx942__) || defined(__gfx950__)
-      __builtin_nontemporal_store(val32, (int32_t *)dst);
+      asm volatile("flat_store_dword %0 %1 sc0 sc1" : : "v"(dst), "v"(val32));
 #endif
 #if defined(__gfx1201__)
       asm volatile("flat_store_b32 %0 %1 scope:SCOPE_SYS" : : "v"(dst), "v"(val32));
@@ -260,7 +261,7 @@ __device__ __forceinline__ void store_asm(uint8_t* val, uint8_t* dst,
       break;
     }
     case 8: {
-		    int64_t val64{__builtin_nontemporal_load((int64_t *)val)};
+      int64_t val64{*(reinterpret_cast<int64_t*>(val))};
 #if defined(__gfx906__)
 #endif
 #if defined(__gfx908__)
@@ -269,7 +270,7 @@ __device__ __forceinline__ void store_asm(uint8_t* val, uint8_t* dst,
       asm volatile("flat_store_dwordx2 %0 %1 glc slc" : : "v"(dst), "v"(val64));
 #endif
 #if defined(__gfx942__) || defined(__gfx950__)
-      __builtin_nontemporal_store(val64, (int64_t *)dst);
+      asm volatile("flat_store_dwordx2 %0 %1 sc0 sc1" : : "v"(dst), "v"(val64));
 #endif
 #if defined(__gfx1201__)
       asm volatile("flat_store_b64 %0 %1 scope:SCOPE_SYS" : : "v"(dst), "v"(val64));
@@ -280,7 +281,6 @@ __device__ __forceinline__ void store_asm(uint8_t* val, uint8_t* dst,
       break;
   }
 }
-
 }  // namespace rocshmem
 
 #endif  // LIBRARY_SRC_ASSEMBLY_HPP_
