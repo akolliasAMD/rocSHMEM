@@ -444,11 +444,17 @@ __device__ __forceinline__ void memcpy_wg(void* dst, void* src, size_t size) {
     for (int i{thread_id}; i < cpy_size; i += block_size) {
       #pragma unroll
       for (int u = 0; u < UNROLL; u++)
-          val[u] = __builtin_nontemporal_load((src_bytes32 + u*block_size));
+          val[u] = *(src_bytes32 + u*block_size);
+          //val[u] = __builtin_nontemporal_load((src_bytes32 + u*block_size));
       #pragma unroll
-      for (int u = 0; u < UNROLL; u++)
-          __builtin_nontemporal_store(val[u], (dst_bytes32 + u*block_size));
+      for (int u = 0; u < UNROLL; u++){
+      #if defined(__gfx942__) || defined(__gfx950__)
+        asm volatile("flat_store_dword %0 %1 sc0 sc1" : : "v"((dst_bytes32 + u*block_size)), "v"(val[u]));
+        #else
+        return;
+        #endif
 
+      }
       src_bytes32 += block_size * UNROLL;
       dst_bytes32 += block_size * UNROLL;
     }
@@ -510,10 +516,18 @@ __device__ __forceinline__ void memcpy_wave(void* dst, void* src, size_t size) {
     for (int i{wave_tid}; i < cpy_size; i += wave_size) {
       #pragma unroll
       for (int u = 0; u < UNROLL; u++)
-          val[u] = __builtin_nontemporal_load((src_bytes32 + u*wave_size));
+          val[u] = *(src_bytes32 + u*wave_size);
+          //val[u] = __builtin_nontemporal_load((src_bytes32 + u*wave_size));
       #pragma unroll
-      for (int u = 0; u < UNROLL; u++)
-          __builtin_nontemporal_store(val[u], (dst_bytes32 + u*wave_size));
+      for (int u = 0; u < UNROLL; u++){
+      #if defined(__gfx942__) || defined(__gfx950__)
+      	asm volatile("flat_store_dword %0 %1 sc0 sc1" : : "v"((dst_bytes32 + u*wave_size)), "v"(val[u]));
+	#else
+      	return;
+	#endif
+      
+      }
+          //__builtin_nontemporal_store(val[u], (dst_bytes32 + u*wave_size));
 
       src_bytes32 += wave_size * UNROLL;
       dst_bytes32 += wave_size * UNROLL;
