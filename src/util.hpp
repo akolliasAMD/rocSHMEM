@@ -488,6 +488,31 @@ __device__ __forceinline__ void memcpy_wave(void* dst, void* src, size_t size) {
   dst_bytes = dst_def;
   src_bytes = src_def;
 
+  
+  uint32_t* dst_bytes32{nullptr};
+  uint32_t* src_bytes32{nullptr};
+  dst_bytes32 = reinterpret_cast<uint32_t*>(dst_def) + wave_tid * UNROLL;
+  src_bytes32 = reinterpret_cast<uint32_t*>(src_def) + wave_tid * UNROLL;
+
+  int32_t val[UNROLL];
+
+
+  cpy_size = size / (UNROLL*4);
+  for (int i{wave_tid}; i < cpy_size; i += wave_size) {
+    #pragma unroll
+    for (int u = 0; u < UNROLL; u++)
+        val[u] = __builtin_nontemporal_load((src_bytes32 + u));
+    #pragma unroll
+    for (int u = 0; u < UNROLL; u++)
+        __builtin_nontemporal_store(val[u], (dst_bytes32 + u));
+
+    src_bytes32 += wave_size * UNROLL;
+    dst_bytes32 += wave_size * UNROLL;
+  }
+  size -= cpy_size * (UNROLL*4);
+  dst_def += cpy_size * (UNROLL*4);
+  src_def += cpy_size * (UNROLL*4);
+
   for (int j{8}; j > 1; j >>= 1) {
     cpy_size = size / j;
     for (int i{wave_tid}; i < cpy_size; i += wave_size) {
