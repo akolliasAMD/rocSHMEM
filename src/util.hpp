@@ -401,7 +401,8 @@ __device__ __forceinline__ void memcpy_lane(void* dst, void* src, size_t size) {
 
   for (size_t i = 8; i > 1; i >>= 1) {
     while (size >= i) {
-      store_asm(src_bytes, dst_bytes, i);
+	    non_temp_store_asm(src_bytes, dst_bytes, i);
+//store_asm(src_bytes, dst_bytes, i);
       src_bytes += i;
       dst_bytes += i;
       size -= i;
@@ -457,7 +458,7 @@ __device__ __forceinline__ void memcpy_wg(void* dst, void* src, size_t size) {
     src_def += cpy_size * (UNROLL*4);
   }
 
-  for (int j{2}; j > 1; j >>= 1) {
+  for (int j{8}; j > 1; j >>= 1) {
     cpy_size = size / j;
     for (int i{thread_id}; i < cpy_size; i += block_size) {
       dst_bytes = dst_def;
