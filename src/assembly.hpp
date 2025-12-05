@@ -221,17 +221,17 @@ __device__ __forceinline__ void store_asm(uint8_t* val, uint8_t* dst,
                                           int size) {
   switch (size) {
     case 2: {
-      int16_t val16{*(reinterpret_cast<int16_t*>(val))};
+      int16_t val16{__builtin_nontemporal_load((int16_t *)val)};
       __builtin_nontemporal_store(val16, (int16_t *)dst);
       break;
     }
     case 4: {
-      int32_t val32{*(reinterpret_cast<int32_t*>(val))};
+      int32_t val32{__builtin_nontemporal_load((int32_t *)val)};
       __builtin_nontemporal_store(val32, (int32_t *)dst);
       break;
     }
     case 8: {
-      int64_t val64{*(reinterpret_cast<int64_t*>(val))};
+      int64_t val64{__builtin_nontemporal_load((int64_t *)val)};
       __builtin_nontemporal_store(val64, (int64_t *)dst);
       break;
     }
